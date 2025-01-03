@@ -6,11 +6,17 @@ function createTriggers() {
     ScriptApp.deleteTrigger(trigger);
   });
 
-  // Tạo trigger mới với khoảng thời gian 1 giờ
+  // Tạo trigger cho autoPostToFanpage (chạy mỗi 15 phút)
   ScriptApp.newTrigger('autoPostToFanpage')
     .timeBased()
-    .everyHours(1) // Khoảng thời gian tối thiểu là 1 giờ
+    .everyMinutes(15)
     .create();
 
-  Logger.log('Triggers created successfully with 1-hour interval');
+  // Tạo trigger cho moveRowsToPublished (chạy mỗi 30 phút)
+  ScriptApp.newTrigger('moveRowsToPublished')
+    .timeBased()
+    .everyMinutes(30)
+    .create();
+
+  Logger.log('Triggers created successfully');
 }

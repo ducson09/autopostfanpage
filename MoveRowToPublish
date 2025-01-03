@@ -1,0 +1,64 @@
+function moveRowsToPublished() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const mainSheet = spreadsheet.getSheetByName('Schedule'); // Sheet nguồn
+  const publishedSheet = spreadsheet.getSheetByName('Published') || spreadsheet.insertSheet('Published'); // Sheet đích
+
+  const mainData = mainSheet.getDataRange().getValues(); // Toàn bộ dữ liệu của sheet Main
+  const headers = mainData[0]; // Dòng tiêu đề
+
+  // Các cột cần chuyển từ Main sang Published
+  const requiredColumns = ['Fanpage', 'Post URL', 'Publish Time'];
+  const columnIndices = requiredColumns.map(col => headers.indexOf(col)); // Lấy chỉ số cột trong Main
+
+  // Cấu trúc cột của sheet Published
+  const publishedHeaders = ['Fanpage', 'Post URL', 'Publish Time', 'Reach', 'Engagement', 'Click Link'];
+
+  // Kiểm tra các cột cần thiết có tồn tại trong sheet Main
+  if (columnIndices.includes(-1)) {
+    Logger.log('Error: Missing required columns in Main sheet.');
+    return;
+  }
+
+  const statusIndex = headers.indexOf('Status'); // Cột Status trong Main
+  const postUrlIndex = headers.indexOf('Post URL'); // Cột Post URL trong Main
+
+  if (statusIndex === -1 || postUrlIndex === -1) {
+    Logger.log('Error: Missing Status or Post URL column in Main sheet.');
+    return;
+  }
+
+  // Tạo mảng lưu các hàng thỏa mãn điều kiện
+  const rowsToMove = [];
+  const rowsToDelete = [];
+
+  mainData.slice(1).forEach((row, index) => {
+    const status = row[statusIndex];
+    const postUrl = row[postUrlIndex];
+
+    // Kiểm tra điều kiện: Status = Done và Post URL không rỗng
+    if (status === 'Done' && postUrl) {
+      const filteredRow = columnIndices.map(colIndex => row[colIndex]); // Lấy dữ liệu các cột cần thiết
+      // Thêm các cột mặc định là trống cho Reach, Engagement, Click Link
+      const publishedRow = [...filteredRow, '', '', '']; 
+      rowsToMove.push(publishedRow); // Lưu hàng cần chuyển
+      rowsToDelete.push(index + 2); // Lưu số dòng cần xóa (bắt đầu từ dòng 2)
+    }
+  });
+
+  if (rowsToMove.length > 0) {
+    // Ghi các hàng vào sheet Published
+    if (publishedSheet.getLastRow() === 0) {
+      publishedSheet.appendRow(publishedHeaders); // Thêm tiêu đề nếu sheet Published trống
+    }
+    publishedSheet.getRange(publishedSheet.getLastRow() + 1, 1, rowsToMove.length, publishedHeaders.length).setValues(rowsToMove);
+
+    // Xóa các hàng khỏi sheet Main (xóa từ dưới lên để không bị lệch index)
+    rowsToDelete.reverse().forEach(rowIndex => {
+      mainSheet.deleteRow(rowIndex);
+    });
+
+    Logger.log(`${rowsToMove.length} rows moved to Published.`);
+  } else {
+    Logger.log('No rows to move.');
+  }
+}

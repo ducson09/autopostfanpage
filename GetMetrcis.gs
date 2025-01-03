@@ -79,7 +79,11 @@ function getPostMetrics() {
       // Xử lý lỗi từ API
       if (json.error) {
         Logger.log(`Row ${i + 2}: Error fetching metrics - ${json.error.message}`);
-        updates.push(["Error", "Error", "Error"]);
+        if (json.error.message.includes("Object with ID") && json.error.message.includes("does not exist")) {
+          updates.push(["Post 404", "Post 404", "Post 404"]); // Ghi "Post 404"
+        } else {
+          updates.push(["Error", "Error", "Error"]); // Ghi "Error" cho các lỗi khác
+        }
         continue;
       }
 

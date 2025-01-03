@@ -1,5 +1,5 @@
 function autoPostToFanpage() {
-  const mainSheetName = "Main";
+  const mainSheetName = "Schedule";
   const dbSheetName = "Database";
   const logPrefix = "[Fanpage Post Automation]";
 

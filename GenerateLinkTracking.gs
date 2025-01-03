@@ -1,6 +1,3 @@
-/**
- * Hàm chính để tạo UTM Tracking links trong sheet Link Tracking
- */
 function generateLinkTracking() {
   const linkTrackingSheetName = "Link Tracking";
   const dbSheetName = "Database";
@@ -40,10 +37,7 @@ function generateLinkTracking() {
     return;
   }
 
-  // Xóa nội dung cũ trong cột Link Result
   linkTrackingSheet.getRange(2, linkResultIndex + 1, linkTrackingData.length - 1, 1).clearContent();
-
-  const updates = [];
 
   linkTrackingData.slice(1).forEach((row, rowIndex) => {
     const currentRow = rowIndex + 2;
@@ -51,13 +45,14 @@ function generateLinkTracking() {
     const fanpage = row[fanpageIndex];
 
     if (!linkInput || !fanpage) {
-      updates.push(["Error: Missing Link Input or Fanpage"]); // Báo lỗi nếu thiếu dữ liệu
+      console.log(`${logPrefix} Row ${currentRow}: Skipping as Link Input or Fanpage is missing.`);
       return;
     }
 
     const dbRow = dbData.find(dbRow => dbRow[dbFanpageIndex] === fanpage);
     if (!dbRow) {
-      updates.push(["Error: Fanpage not found in Database"]); // Báo lỗi nếu không tìm thấy Fanpage
+      console.log(`${logPrefix} Row ${currentRow}: Fanpage not found in Database.`);
+      linkTrackingSheet.getRange(currentRow, linkResultIndex + 1).setValue("Error: Fanpage not found in Database");
       return;
     }
 
@@ -65,21 +60,14 @@ function generateLinkTracking() {
     const utmUser = dbRow[dbUtmUserIndex];
 
     const trackingLink = `${linkInput}?utm_source=${utmUser}&utm_medium=${utmFanpage}`;
-    updates.push([trackingLink]); // Thêm link tracking đã tạo vào danh sách cập nhật
+    linkTrackingSheet.getRange(currentRow, linkResultIndex + 1).setValue(trackingLink);
+    console.log(`${logPrefix} Row ${currentRow}: Tracking link generated successfully.`);
   });
-
-  // Ghi toàn bộ dữ liệu vào cột Link Result
-  linkTrackingSheet.getRange(2, linkResultIndex + 1, updates.length, 1).setValues(updates);
-  console.log(`${logPrefix} Tracking links updated successfully.`);
 }
 
-/**
- * Hàm tự động kích hoạt khi người dùng chỉnh sửa Link Input
- */
 function onEdit(e) {
   const sheetName = "Link Tracking";
   const editedSheet = e.source.getActiveSheet();
-
   if (editedSheet.getName() !== sheetName) return;
 
   const range = e.range;
@@ -87,7 +75,6 @@ function onEdit(e) {
   const linkInputIndex = headers.indexOf("Link Input");
   const linkResultIndex = headers.indexOf("Link Result");
 
-  // Kích hoạt hàm generateLinkTracking nếu cột Link Input thay đổi
   if (range.getColumn() - 1 === linkInputIndex) {
     generateLinkTracking();
   }

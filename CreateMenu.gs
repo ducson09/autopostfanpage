@@ -7,6 +7,9 @@ function onOpen() {
   ui.createMenu('Fanpage Tools') // Tên menu xuất hiện trên thanh công cụ
     .addItem('Run AutoPost', 'autoPostToFanpage') // Tên chức năng và hàm tương ứng
     .addItem('Get Metrics', 'getPostMetrics') // Tên chức năng và hàm tương ứng
+    .addItem('Generator Link', 'generateLinkTracking') // Tên chức năng và hàm tương ứng
+    .addItem('Move Row To Publish', 'moveRowsToPublished') // Tên chức năng và hàm tương ứng
+    .addItem('Move Rows To Storage', 'moveRowsToStorage') // Tên chức năng và hàm tương ứng
     .addSeparator() // Thêm đường phân cách
     .addItem('Create Triggers', 'createTriggers') // Thêm chức năng tạo trigger
     .addToUi(); // Thêm menu vào giao diện

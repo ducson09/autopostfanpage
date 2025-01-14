@@ -106,6 +106,52 @@ function getPostMetrics() {
     publishedSheet.getRange(2, reachIndex + 1, updates.length, 3).setValues(updates);
     Logger.log("Metrics updated successfully.");
   }
+
+  // Gọi hàm highlightReach sau khi cập nhật dữ liệu
+  highlightReach();
+}
+
+/**
+ * Tô màu nền đỏ cho các ô Reach > 20000 và Publish Time không quá 7 ngày
+ */
+function highlightReach() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const publishedSheet = spreadsheet.getSheetByName('Published'); // Sheet Published
+
+  if (!publishedSheet) {
+    Logger.log('Error: Missing Published sheet.');
+    return;
+  }
+
+  const dataRange = publishedSheet.getDataRange();
+  const data = dataRange.getValues();
+  const currentDate = new Date();
+
+  const publishTimeIndex = 2; // Cột C (Publish Time)
+  const reachIndex = 3; // Cột D (Reach)
+
+  const backgroundColors = dataRange.getBackgrounds();
+
+  for (let i = 1; i < data.length; i++) { // Bắt đầu từ hàng 2 (bỏ qua tiêu đề)
+    const reachValue = parseInt(data[i][reachIndex], 10); // Lấy giá trị Reach
+    const publishTime = new Date(data[i][publishTimeIndex]); // Lấy Publish Time
+
+    if (!isNaN(reachValue) && reachValue > 20000) {
+      const daysDifference = (currentDate - publishTime) / (1000 * 60 * 60 * 24); // Số ngày từ Publish Time
+
+      if (daysDifference <= 7) { // Nếu Publish Time không quá 7 ngày
+        backgroundColors[i][reachIndex] = "#FFCCCC"; // Tô màu đỏ nhạt cho ô Reach
+      } else {
+        backgroundColors[i][reachIndex] = null; // Xóa màu nếu không thỏa điều kiện
+      }
+    } else {
+      backgroundColors[i][reachIndex] = null; // Xóa màu nếu không thỏa điều kiện
+    }
+  }
+
+  // Cập nhật màu nền vào bảng Published
+  dataRange.setBackgrounds(backgroundColors);
+  Logger.log("Highlight completed successfully.");
 }
 
 /**

@@ -18,5 +18,20 @@ function createTriggers() {
     .everyMinutes(30)
     .create();
 
+  // Tạo trigger cho moveRowsToStorage (chạy 1 ngày 1 lần lúc 1 giờ sáng)
+  ScriptApp.newTrigger('moveRowsToStorage')
+    .timeBased()
+    .atHour(1) // 1 giờ sáng
+    .everyDays(1)
+    .create();
+
+  // Tạo trigger cho getPostMetrics (chạy 1 ngày 1 lần lúc 7h15 sáng)
+  ScriptApp.newTrigger('getPostMetrics')
+    .timeBased()
+    .atHour(7) // 7 giờ sáng
+    .nearMinute(15) // 15 phút
+    .everyDays(1)
+    .create();
+
   Logger.log('Triggers created successfully');
 }

@@ -1,0 +1,52 @@
+function moveRowsToStorage() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const publishedSheet = spreadsheet.getSheetByName('Published'); // Sheet Published
+  const storageSheet = spreadsheet.getSheetByName('Storage'); // Sheet Storage
+
+  if (!publishedSheet || !storageSheet) {
+    Logger.log('Error: Missing Published or Storage sheet.');
+    return;
+  }
+
+  // Lấy dữ liệu từ sheet Published
+  const publishedData = publishedSheet.getDataRange().getValues();
+  const headers = publishedData[0]; // Dòng tiêu đề
+  const data = publishedData.slice(1); // Bỏ dòng tiêu đề
+
+  const fanpageIndex = 0; // Cột A (Fanpage)
+  const postURLIndex = 1; // Cột B (Post URL)
+  const publishTimeIndex = 2; // Cột C (Publish Time)
+
+  const currentDate = new Date();
+  const tenDaysInMs = 10 * 24 * 60 * 60 * 1000;
+
+  const rowsToMove = []; // Lưu trữ các hàng cần chuyển
+  const rowsToKeep = []; // Lưu trữ các hàng cần giữ lại
+
+  data.forEach(row => {
+    const publishTime = new Date(row[publishTimeIndex]);
+    const timeDifference = currentDate - publishTime;
+
+    if (timeDifference > tenDaysInMs) {
+      // Thêm hàng vào danh sách chuyển qua Storage (chỉ lấy các cột Fanpage, Post URL, Publish Time)
+      rowsToMove.push([row[fanpageIndex], row[postURLIndex], row[publishTimeIndex]]);
+    } else {
+      // Thêm hàng vào danh sách giữ lại
+      rowsToKeep.push(row);
+    }
+  });
+
+  // Ghi các hàng vào sheet Storage
+  if (rowsToMove.length > 0) {
+    const storageLastRow = storageSheet.getLastRow();
+    storageSheet.getRange(storageLastRow + 1, 1, rowsToMove.length, 3).setValues(rowsToMove);
+    Logger.log(`Moved ${rowsToMove.length} rows to Storage.`);
+  }
+
+  // Ghi lại các hàng còn lại vào sheet Published
+  publishedSheet.clearContents();
+  publishedSheet.getRange(1, 1, 1, headers.length).setValues([headers]); // Ghi lại tiêu đề
+  if (rowsToKeep.length > 0) {
+    publishedSheet.getRange(2, 1, rowsToKeep.length, headers.length).setValues(rowsToKeep);
+  }
+}
